@@ -5,117 +5,121 @@ const { MongoClient } = require('mongodb');
 const { request } = require('http');
 var app = express();
 var jsonParser = bodyParser.json();
-var API = require('./ourApi');
+var User = require('./ourApi');
+const { constrainedMemory } = require("process");
 
 const urlencodedParser = express.urlencoded({extended: false});
-
+User.id= null;
+User.name = '';
+User.pass= '';
+    User.logged= false;
 app.get("/", function (req, res) {
     res.sendFile(process.cwd() + '/index.html');
 });
 app.use(express.static(__dirname + "/public"));
 // получение списка данных
-app.get("/api/users", function (req, res) {
-    var content = fs.readFileSync("users.json", "utf8");
-    var users = JSON.parse(content);
-    res.send(users);
+app.get("/api/posts", function (req, res) {
+    var content = fs.readFileSync("posts.json", "utf8");
+    var posts = JSON.parse(content);
+    res.send(posts);
 });
 // получение одного пользователя по id
-app.get("/api/users/:id", function (req, res) {
+app.get("/api/posts/:id", function (req, res) {
 
     var id = req.params.id; // получаем id
-    var content = fs.readFileSync("users.json", "utf8");
-    var users = JSON.parse(content);
-    var user = null;
+    var content = fs.readFileSync("posts.json", "utf8");
+    var posts = JSON.parse(content);
+    var post = null;
     // находим в массиве пользователя по id
-    for (var i = 0; i < users.length; i++) {
-        if (users[i].id == id) {
-            user = users[i];
+    for (var i = 0; i < posts.length; i++) {
+        if (posts[i].id == id) {
+            post = posts[i];
             break;
         }
     }
     // отправляем пользователя
-    if (user) {
-        res.send(user);
+    if (post) {
+        res.send(post);
     }
     else {
         res.status(404).send();
     }
 });
 // получение отправленных данных
-app.post("/api/users", jsonParser, function (req, res) {
+app.post("/api/posts", jsonParser, function (req, res) {
     if (!req.body) return res.sendStatus(400);
-    var userName = req.body.name;
-    var userAge = req.body.age;
-    var user = { name: userName, age: userAge };
+    var postTitle = req.body.title;
+    var postText = req.body.text;
+    var post = { title: postTitle, text: postText };
 
-    var data = fs.readFileSync("users.json", "utf8");
-    var users = JSON.parse(data);
+    var data = fs.readFileSync("posts.json", "utf8");
+    var posts = JSON.parse(data);
 
     // находим максимальный id
-    var id = Math.max.apply(Math, users.map(function (o) { return o.id; }))
+    var id = Math.max.apply(Math, posts.map(function (o) { return o.id; }))
     // увеличиваем его на единицу
-    user.id = id + 1;
+    post.id = id + 1;
     // добавляем пользователя в массив
-    users.push(user);
-    var data = JSON.stringify(users);
+    posts.push(post);
+    var data = JSON.stringify(posts);
     // перезаписываем файл с новыми данными
-    fs.writeFileSync("users.json", data);
-    res.send(user);
+    fs.writeFileSync("posts.json", data);
+    res.send(post);
 });
 // удаление пользователя по id
-app.delete("/api/users/:id", function (req, res) {
+app.delete("/api/posts/:id", function (req, res) {
 
     var id = req.params.id;
-    var data = fs.readFileSync("users.json", "utf8");
-    var users = JSON.parse(data);
+    var data = fs.readFileSync("posts.json", "utf8");
+    var posts = JSON.parse(data);
     var index = -1;
     // находим индекс пользователя в массиве
-    for (var i = 0; i < users.length; i++) {
-        if (users[i].id == id) {
+    for (var i = 0; i < posts.length; i++) {
+        if (posts[i].id == id) {
             index = i;
             break;
         }
     }
     if (index > -1) {
         // удаляем пользователя из массива по индексу
-        var user = users.splice(index, 1)[0];
-        var data = JSON.stringify(users);
-        fs.writeFileSync("users.json", data);
+        var post = posts.splice(index, 1)[0];
+        var data = JSON.stringify(posts);
+        fs.writeFileSync("posts.json", data);
         // отправляем удаленного пользователя
-        res.send(user);
+        res.send(post);
     }
     else {
         res.status(404).send();
     }
 });
 // изменение пользователя
-app.put("/api/users", jsonParser, function (req, res) {
+app.put("/api/posts", jsonParser, function (req, res) {
 
     if (!req.body) return res.sendStatus(400);
 
-    var userId = req.body.id;
-    var userName = req.body.name;
-    var userAge = req.body.age;
+    var postId = req.body.id;
+    var postTitle = req.body.title;
+    var postText = req.body.text;
 
-    var data = fs.readFileSync("users.json", "utf8");
-    var users = JSON.parse(data);
-    var user;
-    for (var i = 0; i < users.length; i++) {
-        if (users[i].id == userId) {
-            user = users[i];
+    var data = fs.readFileSync("posts.json", "utf8");
+    var posts = JSON.parse(data);
+    var post;
+    for (var i = 0; i < posts.length; i++) {
+        if (posts[i].id == postId) {
+            post = posts[i];
             break;
         }
     }
     // изменяем данные у пользователя
-    if (user) {
-        user.age = userAge;
-        user.name = userName;
-        var data = JSON.stringify(users);
-        fs.writeFileSync("users.json", data);
-        res.send(user);
+    if (post) {
+        post.text = postText;
+        post.title = postTitle;
+        var data = JSON.stringify(posts);
+        fs.writeFileSync("posts.json", data);
+        res.send(post);
     }
     else {
-        res.status(404).send(user);
+        res.status(404).send(post);
     }
 });
 
@@ -139,7 +143,21 @@ app.post("/registerSubmit",urlencodedParser, function (req, res) {
     res.redirect("/auth");
 })
 app.post("/authCheck", urlencodedParser, function(req,res){
-
+    var userName = req.body.name;
+    var userPass = req.body.pass;
+    var content = fs.readFileSync("users.json", "utf8");
+    for(var i=0; i<content.length; i++)
+        {
+            if((userName==content[i].name)&&(userPass==content[i].pass))
+                {
+                    User.id=content[i].id;
+                    User.name=content[i].name;
+                    User.pass=content[i].pass;
+                    User.logged=true;
+                    break;
+                }
+        }
+    res.redirect("/");
 });
 app.listen(3000, function () {
     console.log("Сервер ожидает подключения...");
