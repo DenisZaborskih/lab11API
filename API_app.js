@@ -8,11 +8,11 @@ var jsonParser = bodyParser.json();
 var User = require('./ourApi');
 const { constrainedMemory } = require("process");
 
-const urlencodedParser = express.urlencoded({extended: false});
-User.id= null;
+const urlencodedParser = express.urlencoded({ extended: false });
+User.id = null;
 User.name = '';
-User.pass= '';
-    User.logged= false;
+User.pass = '';
+User.logged = false;
 app.get("/", function (req, res) {
     res.sendFile(process.cwd() + '/index.html');
 });
@@ -75,12 +75,12 @@ app.delete("/api/posts/:id", function (req, res) {
     var index = -1;
     // находим индекс пользователя в массиве
     for (var i = 0; i < posts.length; i++) {
-        if (posts[i].id == id) {
+        if (posts[i].id == id ) {
             index = i;
             break;
         }
     }
-    if (index > -1) {
+    if (index > -1 && User.logged) {
         // удаляем пользователя из массива по индексу
         var post = posts.splice(index, 1)[0];
         var data = JSON.stringify(posts);
@@ -95,7 +95,7 @@ app.delete("/api/posts/:id", function (req, res) {
 // изменение пользователя
 app.put("/api/posts", jsonParser, function (req, res) {
 
-    if (!req.body) return res.sendStatus(400);
+    if (!req.body || !User.logged) return res.sendStatus(400);
 
     var postId = req.body.id;
     var postTitle = req.body.title;
@@ -105,13 +105,13 @@ app.put("/api/posts", jsonParser, function (req, res) {
     var posts = JSON.parse(data);
     var post;
     for (var i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
+        if (posts[i].id == postId && User.logged) {
             post = posts[i];
             break;
         }
     }
     // изменяем данные у пользователя
-    if (post) {
+    if (post && User.logged) {
         post.text = postText;
         post.title = postTitle;
         var data = JSON.stringify(posts);
@@ -129,7 +129,7 @@ app.get("/register", function (req, res) {
 app.get("/auth", function (req, res) {
     res.sendFile(process.cwd() + '/auth.html');
 })
-app.post("/registerSubmit",urlencodedParser, function (req, res) {
+app.post("/registerSubmit", urlencodedParser, function (req, res) {
     var userName = req.body.name;
     var userPass = req.body.pass;
     var user = { name: userName, pass: userPass };
@@ -142,22 +142,22 @@ app.post("/registerSubmit",urlencodedParser, function (req, res) {
     fs.writeFileSync("users.json", data);
     res.redirect("/auth");
 })
-app.post("/authCheck", urlencodedParser, function(req,res){
+app.post("/authCheck", urlencodedParser, function (req, res) {
     var userName = req.body.name;
     var userPass = req.body.pass;
     var content = fs.readFileSync("users.json", "utf8");
-    for(var i=0; i<content.length; i++)
-        {
-            if((userName==content[i].name)&&(userPass==content[i].pass))
-                {
-                    User.id=content[i].id;
-                    User.name=content[i].name;
-                    User.pass=content[i].pass;
-                    User.logged=true;
-                    break;
-                }
+    var posts = JSON.parse(content);
+    console.log(userName, userPass);
+    console.log(posts);
+    for (var i = 0; i < posts.length; i++) {
+        if ((userName == posts[i].name) && (userPass == posts[i].pass)) {
+            User.id = posts[i].id;
+            User.name = posts[i].name;
+            User.pass = posts[i].pass;
+            User.logged = true;
+            res.redirect("/");
         }
-    res.redirect("/");
+    }
 });
 app.listen(3000, function () {
     console.log("Сервер ожидает подключения...");
