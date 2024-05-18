@@ -11,36 +11,28 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
         
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="client.js"></script>
 </head>
 
 <body>
     <header>
             <h1>Некий сайт</h1>
-        <a href="/register">Зарегистрироваться</a>
+        <button onclick=registration()>Зарегистрироваться</a></button>
         <br>
-        <a href="/auth">Вход</a>  
+        <div id="reg"></div>
+        <br>
+        <button onclick=authentification()>Войти</a></button>
+        <div id="auth"></div>
     </header>
         <h2>Список неких постов (не пользователей!)</h2>
-      
-    <form name="newPost">
-                <input type="hidden" name="id" value="0" />
-                <div class="form-group">
-                        <label for="title">Заголовок:</label>
-                        <input class="form-control" name="title" />
-                    </div>
-                <div class="form-group">
-                        <label for="text">Текст:</label>
-                        <input class="form-control" name="text" />
-                    </div>
-                <div class="panel-body">
-                        <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
-                        <a id="reset" class="btn btn-sm btn-primary">Сбросить</a>
-                    </div>
-            </form>
+    <div id="editField">
+        <form name='newPost'><input type='hidden' name='id' value='0' /><input type='hidden' name='authorId' value='0' /><div class='form-group'><label for='title'>Заголовок:</label><input class='form-control' name='title' id='title' /></div><div class='form-group'><label for='text'>Текст:</label><input class='form-control' name='text' id='text' /></div><div class='panel-body'><button type='submit' class='btn btn-sm btn-primary'>Сохранить</button><a id='reset' class='btn btn-sm btn-primary'>Сбросить</a></div></form>
+    </div>
         <table class="table table-condensed table-striped table-bordered">
                 <thead>
             <tr>
                 <th>Id</th>
+                <th>Автор</th>
                 <th>Заголовок</th>
                 <th>Текст</th>
                 <th></th>
@@ -50,131 +42,6 @@
                     </tbody>
             </table>
         
-    <script>
-        // Получение всех пользователей
-        function GetPosts() {
-            $.ajax({
-                url: "/api/posts",
-                type: "GET",
-                contentType: "application/json",
-                success: function (posts) {
-                    var rows = "";
-                    $.each(posts, function (index, post) {
-                        // добавляем полученные элементы в таблицу
-                        rows += row(post);
-                    })
-                    $("table tbody").append(rows);
-                }
-            });
-        }
-        // Получение одного пользователя
-        function GetPost(id) {
-            $.ajax({
-                url: "/api/posts/" + id,
-                type: "GET",
-                contentType: "application/json",
-                success: function (post) {
-                    var form = document.forms["newPost"];
-                    form.elements["id"].value = post.id;
-                    form.elements["title"].value = post.title;
-                    form.elements["text"].value = post.text;
-                }
-            });
-        }
-        // Добавление пользователя
-        function CreatePost(postTitle, postText) {
-            $.ajax({
-                url: "api/posts",
-                contentType: "application/json",
-                method: "POST",
-                data: JSON.stringify({
-                    title: postTitle,
-                    text: postText
-                }),
-                success: function (post) {
-                    reset();
-                    $("table tbody").append(row(post));
-                }
-            })
-        }
-        // Изменение пользователя
-        function EditPost(postId, postTitle, postText) {
-            $.ajax({
-                url: "api/posts",
-                contentType: "application/json",
-                method: "PUT",
-                data: JSON.stringify({
-                    id: postId,
-                    title: postTitle,
-                    text: postText
-                }),
-                success: function (post) {
-                    reset();
-                    $("tr[data-rowid='" + post.id + "']").replaceWith(row(post));
-                }
-            })
-        }
-
-        // сброс формы
-        function reset() {
-            var form = document.forms["newPost"];
-            form.reset();
-            form.elements["id"].value = 0;
-        }
-
-        // Удаление пользователя
-        function DeletePost(id) {
-            $.ajax({
-                url: "api/posts/" + id,
-                contentType: "application/json",
-                method: "DELETE",
-                success: function (post) {
-                    console.log(post);
-                    $("tr[data-rowid='" + post.id + "']").remove();
-                }
-            })
-        }
-        // создание строки для таблицы
-        var row = function (post) {
-            return "<tr data-rowid='" + post.id + "'><td>" + post.id + "</td>" +
-                "<td>" + post.title + "</td> <td>" + post.text + "</td>" +
-                "<td><a class='editLink' data-id='" + post.id + "'>Изменить</a> | " +
-                "<a class='removeLink' data-id='" + post.id + "'>Удалить</a></td></tr>";
-        }
-        // сброс значений формы
-        $("#reset").click(function (e) {
-
-            e.preventDefault();
-            reset();
-        })
-
-        // отправка формы
-        $("form").submit(function (e) {
-            e.preventDefault();
-            var id = this.elements["id"].value;
-            var title = this.elements["title"].value;
-            var text = this.elements["text"].value;
-            if (id == 0)
-                CreatePost(title, text);
-            else
-                EditPost(id, title, text);
-        });
-
-        // нажимаем на ссылку Изменить
-        $("body").on("click", ".editLink", function () {
-            var id = $(this).data("id");
-            GetPost(id);
-        })
-        // нажимаем на ссылку Удалить
-        $("body").on("click", ".removeLink", function () {
-            var id = $(this).data("id");
-            DeletePost(id);
-        })
-
-        // загрузка пользователей
-        GetPosts();
-
-    </script>
 </body>
 
 </html>

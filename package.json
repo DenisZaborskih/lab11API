@@ -1,22 +1,24 @@
 {
   "name": "lab11",
   "version": "1.0.0",
-  "description": "lab work 11 for IT studies",
-  "main": "API_app.js",
+  "description": "lab 11 for internet technologies studies",
+  "main": "client.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [
+    "it",
     "lab",
-    "test",
-    "IT",
-    "study"
+    "test"
   ],
   "author": "Dan n Den",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.19.2",
-    "mongodb": "^6.6.1",
-    "mongoose": "^8.3.4"
+    "http": "^0.0.1-security",
+    "mongodb": "^6.6.2",
+    "mongoose": "^8.4.0"
   }
 }
