@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Authenticated Page</title>
+</head>
+
+<body>
+    <h1 id="user-info"></h1>
+
+    <div id="posts-container">
+        <!-- Posts will be displayed here -->
+    </div>
+
+    <button id="show-posts-btn">Show All Posts</button>
+    <button id="add-post-btn">Create Post</button>
+
+    <div id="post-form-container" style="display: none;">
+        <h2>Create Post</h2>
+        <form id="post-form">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" required></textarea>
+
+            <button type="submit">Create</button>
+        </form>
+    </div>
+
+    <script>
+        // Extract user ID and name from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userName = urlParams.get('name');
+        // Display user information
+        const userInfoElement = document.getElementById('user-info');
+        userInfoElement.textContent = `Welcome, ${userName}!`;
+
+        const showPostsBtn = document.getElementById('show-posts-btn');
+        const addPostBtn = document.getElementById('add-post-btn');
+        const postFormContainer = document.getElementById('post-form-container');
+        const postsContainer = document.getElementById('posts-container');
+
+        showPostsBtn.addEventListener('click', () => {
+            // Fetch and display posts
+            fetch('/get-posts')
+                .then(response => response.json())
+                .then(posts => {
+                    postsContainer.innerHTML = '';
+
+                    posts.forEach(post => {
+                        const newPost = document.createElement('div');
+                        newPost.classList.add('post');
+                        newPost.innerHTML = `<h3>Title: ${post.title}</h3><p>Author: ${post.author}</p><p>Content: ${post.content}</p>`;
+                        postsContainer.appendChild(newPost);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        addPostBtn.addEventListener('click', () => {
+            postFormContainer.style.display = 'block';
+        });
+
+        const postForm = document.getElementById('post-form');
+
+        postForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            // Send the post data to the server
+            fetch('/create-post', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content, author: userName })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+
+                    // Append the new post to the posts container
+                    const newPost = document.createElement('div');
+                    newPost.classList.add('post');
+                    newPost.innerHTML = `<h3>Title: ${title}</h3><p>Author: ${userName}</p><p>Content: ${content}</p>`;
+                    postsContainer.appendChild(newPost);
+
+                    postForm.reset();
+                    postFormContainer.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+
+        const deletePost = (postId) => {
+            fetch(`/delete-post/${postId}`, {
+                method: 'DELETE',
+                body: JSON.stringify({ postId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postElement) {
+                        postElement.remove();
+                    }
+                    window.location.href = data.redirectUrl;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        };
+
+        const changePost = (postId) => {
+            const title = prompt('Enter new title:');
+            const content = prompt('Enter new content:');
+
+            fetch(`/change-post/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postElement) {
+                        postElement.innerHTML = `<h3>Title: ${data.post.title}</h3><p>Author: ${data.post.author}</p><p>Content: ${data.post.content}</p>`;
+                    }
+                    window.location.href = data.redirectUrl;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        };
+
+        function createPostButtons(post) {
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', () => {
+                if (post.author === userName) {
+                    deletePost(post.id);
+                } else {
+                    alert('You can only delete your own posts.');
+                }
+            });
+
+            const changeButton = document.createElement('button');
+            changeButton.textContent = 'Change';
+            changeButton.addEventListener('click', () => {
+                if (post.author === userName) {
+                    changePost(post.id);
+                } else {
+                    alert('You can only change your own posts.');
+                }
+            });
+
+            return [deleteButton, changeButton];
+        }
+
+        showPostsBtn.addEventListener('click', () => {
+            // Fetch and display posts
+            fetch('/get-posts')
+                .then(response => response.json())
+                .then(posts => {
+                    postsContainer.innerHTML = '';
+
+                    posts.forEach(post => {
+                        const newPost = document.createElement('div');
+                        newPost.classList.add('post');
+                        newPost.innerHTML = `<h3>Title: ${post.title}</h3><p>Author: ${post.author}</p><p>Content: ${post.content}</p>`;
+
+                        const [deleteButton, changeButton] = createPostButtons(post);
+                        newPost.appendChild(deleteButton);
+                        newPost.appendChild(changeButton);
+
+                        postsContainer.appendChild(newPost);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+
+</html>

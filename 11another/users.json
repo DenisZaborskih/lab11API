@@ -1,0 +1,37 @@
+[
+  {
+    "id": "8e87f40f-e51f-49be-b567-f5c9c2daf741",
+    "username": "Denis",
+    "password": "1"
+  },
+  {
+    "id": "55b09773-fc10-421b-85c9-2c109963a0d9",
+    "username": "Denis",
+    "password": "123"
+  },
+  {
+    "id": "3afddb2f-9dd5-4e25-8349-d23447103f81",
+    "username": "Denis",
+    "password": "7"
+  },
+  {
+    "id": "f7fa213b-a4a8-4075-9912-77d53b404ac7",
+    "username": "New user",
+    "password": "2"
+  },
+  {
+    "id": "73809c2f-685a-4db7-91b5-ad27f8fc998d",
+    "username": "Another",
+    "password": "3"
+  },
+  {
+    "id": "9fceb7da-7a63-4b11-8c61-4e2d83b34e54",
+    "username": "New user",
+    "password": "2"
+  },
+  {
+    "id": "8b7ef061-a3f8-41de-9688-c020228e17e6",
+    "username": "Vova",
+    "password": "5"
+  }
+]
