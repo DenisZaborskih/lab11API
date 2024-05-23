@@ -1,0 +1,185 @@
+<html>
+
+<head>
+    <title>Главная страница</title>
+    <link rel=stylesheet href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h1 id="user-info"></h1>
+        <button id="logoff-btn">Выход</button>
+        <button id="show-posts-btn">Открыть посты</button>
+        <button id="add-post-btn">Создать</button>
+
+        <div id="post-form-container" style="display: none;">
+            <h2>Создание поста</h2>
+            <form id="post-form">
+                <label for="title">Заголовок:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="content">Содержание:</label>
+                <textarea id="content" name="content" required></textarea>
+
+                <button type="submit">Создать</button>
+            </form>
+        </div>
+
+    </header>
+    <div id="posts-container">
+        <!-- Posts will be displayed here -->
+    </div>
+    <script>
+        // Extract user ID and name from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userName = urlParams.get('name');
+        const id = urlParams.get('id');
+        // Display user information
+        const userInfoElement = document.getElementById('user-info');
+        userInfoElement.textContent = `Добро пожаловать, ${userName}!`;
+
+        const showPostsBtn = document.getElementById('show-posts-btn');
+        const addPostBtn = document.getElementById('add-post-btn');
+        const postFormContainer = document.getElementById('post-form-container');
+        const postsContainer = document.getElementById('posts-container');
+        const logoffButton = document.getElementById('logoff-btn');
+        function getUserPosts(userId) {
+            fetch(`/get-users-posts${userId}`)
+                .then(response => response.json())
+                .then(posts => {postsContainer.innerHTML="";
+                    console.log(posts);
+                    showPosts(posts);
+                })
+        }
+        function showPosts(posts) {
+
+            posts.forEach(post => {
+                const newPost = document.createElement('div');
+                newPost.classList.add('post');
+                newPost.innerHTML = `<h3>Заголовок: ${post.title}</h3><p>Автор: <a onClick=getUserPosts("${post.authorId}")>${post.author}</a></p><p>Текст: ${post.content}</p>`;
+                newPost.id=post.id;
+                const [deleteButton, changeButton] = createPostButtons(post);
+                newPost.appendChild(deleteButton);
+                newPost.appendChild(changeButton);
+
+                postsContainer.appendChild(newPost);
+            });
+        }
+        showPostsBtn.addEventListener('click', () => {
+            // Fetch and display posts
+            fetch('/get-posts')
+                .then(response => response.json())
+                .then(posts => {
+                    postsContainer.innerHTML = '';
+                    console.log(posts);
+                    showPosts(posts);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        addPostBtn.addEventListener('click', () => {
+            postFormContainer.style.display = 'block';
+        });
+        logoffButton.addEventListener('click', () => {
+            console.log('teh');
+            fetch('/logoff')
+                .then(response => {window.location.href = response.url})
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        const postForm = document.getElementById('post-form');
+
+        postForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            // Send the post data to the server
+            fetch('/create-post', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content, author: userName, authorId: id })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    showPosts([post]);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+
+        const deletePost = (postId) => {
+            fetch(`/delete-post/${postId}`, {
+                method: 'DELETE',
+                body: JSON.stringify({ postId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    console.log(document.body.innerHTML);
+                    const postElement = document.getElementById(postId);
+                    postElement.remove();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        };
+
+        const changePost = (postId) => {
+            const title = prompt('Новый заголовок:');
+            const content = prompt('Новый текст:');
+
+            fetch(`/change-post/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const postElement = document.getElementById(postId);
+                    postElement.remove();
+                    var post=data.post;
+                    showPosts([post]);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        };
+
+        function createPostButtons(post) {
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Удаление';
+            deleteButton.addEventListener('click', () => {
+                if (post.authorId === id) {
+                    deletePost(post.id);
+                } else {
+                    alert('Нельзя удалять чужие записи.');
+                }
+            });
+
+            const changeButton = document.createElement('button');
+            changeButton.textContent = 'Измена';
+            changeButton.addEventListener('click', () => {
+                if (post.authorId === id) {
+                    changePost(post.id);
+                } else {
+                    alert('Нельзя редактировать чужие записи.');
+                }
+            });
+
+            return [deleteButton, changeButton];
+        }
+    </script>
+</body>
+
+</html>

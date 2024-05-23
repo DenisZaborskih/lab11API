@@ -2,46 +2,146 @@
 <html>
 
 <head>
-        
-    <meta charset="utf-8" />
-        
-    <meta name="viewport" content="width=device-width" />
-        <title>Список постов</title>
-        
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
-        
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-    <script src="client.js"></script>
+    <title>Задача 11. Простое REST API</title>
+    <link rel=stylesheet href="styles.css">
 </head>
 
 <body>
-    <header>
-            <h1>Некий сайт</h1>
-        <button onclick=registration()>Зарегистрироваться</a></button>
-        <br>
-        <div id="reg"></div>
-        <br>
-        <button onclick=authentification()>Войти</a></button>
-        <div id="auth"></div>
-    </header>
-        <h2>Список неких постов (не пользователей!)</h2>
-    <div id="editField">
-        <form name='newPost'><input type='hidden' name='id' value='0' /><input type='hidden' name='authorId' value='0' /><div class='form-group'><label for='title'>Заголовок:</label><input class='form-control' name='title' id='title' /></div><div class='form-group'><label for='text'>Текст:</label><input class='form-control' name='text' id='text' /></div><div class='panel-body'><button type='submit' class='btn btn-sm btn-primary'>Сохранить</button><a id='reset' class='btn btn-sm btn-primary'>Сбросить</a></div></form>
+    <h1>Добро пожаловать на стартовую страницу</h1>
+
+    <button id="reg-btn">Регистрация</button>
+    <button id="auth-btn">Вход</button>
+
+    <div id="registration-form" style="display: none;">
+        <h2>Registration</h2>
+        <form id="registration-form-content">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Register</button>
+        </form>
     </div>
-        <table class="table table-condensed table-striped table-bordered">
-                <thead>
-            <tr>
-                <th>Id</th>
-                <th>Автор</th>
-                <th>Заголовок</th>
-                <th>Текст</th>
-                <th></th>
-            </tr>
-        </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        
+
+    <div id="login-form" style="display: none;">
+        <h2>Login</h2>
+        <form id="login-form-content">
+            <label for="username">Username:</label>
+            <input type="text" id="login-username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="login-password" name="password" required>
+
+            <button type="submit" id="login-btn">Login</button>
+        </form>
+    </div>
+
+    <div id="message"></div>
+
+
+
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+        const loginForm = document.getElementById('login-form');
+
+        loginBtn.addEventListener('click', () => {
+            loginForm.style.display = 'block';
+        });
+
+        const loginFormContent = document.getElementById('login-form-content');
+
+        loginFormContent.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url; // Redirect to the new page after successful authentication
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data) {
+                        console.log(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+
+
+
+    <script>
+        const regBtn = document.getElementById('reg-btn');
+        const authBtn = document.getElementById('auth-btn');
+        const regForm = document.getElementById('registration-form');
+        const authForm = document.getElementById('login-form');
+       
+        regBtn.addEventListener('click', () => {
+            regForm.style.display = 'block';
+            authForm.style.display = 'none';
+        });
+
+        authBtn.addEventListener('click', () => {
+            authForm.style.display = 'block';
+            regForm.style.display = 'none';
+        });
+
+        // Registration form submission
+        const regFormContent = document.getElementById('registration-form-content');
+        const messageDiv = document.getElementById('message');
+
+        regFormContent.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    messageDiv.textContent = data.message;
+                    regFormContent.reset();
+                })
+                .catch(error => {
+                    messageDiv.textContent = 'Error registering user.';
+                    console.error('Error:', error);
+                });
+        });
+
+        // Authentication form submission (you'll need to implement this)
+        const authFormContent = document.getElementById('authentication-form-content');
+
+        authFormContent.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('auth-username').value;
+            const password = document.getElementById('auth-password').value;
+
+            // Implement authentication logic here
+            // ...
+        });
+    </script>
 </body>
 
 </html>

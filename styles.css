@@ -1,0 +1,44 @@
+body{
+    width: 100%;
+    display: flexbox;
+    background-color: lightskyblue;
+}
+.post{
+    display:inline-block;
+	background-color:lightblue;
+    min-width: 100px;
+    max-width: 500px;
+    max-height: 500px;
+    min-height: 50px;
+    border: solid 1px darkslategray;
+}
+.title{
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: bold;
+    word-break: break-all;
+}
+.post button{
+    min-width: 100px;
+}
+.post span {
+	display: flex;
+    justify-content: space-between;
+}
+.post .text{
+    max-width: 500px;
+    max-height: 500px;
+    word-break: break-all;
+    color: brown;
+}
+.deleted{
+    background-color: red;
+}
+button{
+    background-color: lightseagreen;
+    color: aliceblue;
+    border: none;
+}
+button:active{
+    background-color: azure;
+}
