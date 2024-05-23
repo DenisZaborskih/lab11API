@@ -107,6 +107,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
+                    post=data.post;
                     console.log(data.message);
                     showPosts([post]);
                 })

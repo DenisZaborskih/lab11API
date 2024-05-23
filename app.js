@@ -1,13 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+
+const rateLimit = require("express-rate-limit");
 const app = express();
 const fs = require('fs');
 const usersFilePath = 'users.json';
 const postsFilePath = 'posts.json';
 const port = 3000;
 const { v4: uuidv4 } = require('uuid');
-
+const apiLimiter = rateLimit({
+    windowMs: 1,
+    max: 3,
+    message: "Ахтунг",
+});
 app.use(express.static('.'));
+app.use(apiLimiter);
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
